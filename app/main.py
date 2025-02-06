@@ -1,5 +1,5 @@
 from typing import Optional, Union
-from fastapi import Body, FastAPI, Response, status, HTTPException
+from fastapi import Body, FastAPI, Response, status, HTTPException, Header
 from pydantic import BaseModel
 from random import randrange
 import psycopg
@@ -36,6 +36,7 @@ def find_index_post(id):
     for i, p in enumerate(my_post):
         if p["id"] == id:
             return i
+        
 
 @app.get("/")
 def read_root():
@@ -43,20 +44,20 @@ def read_root():
 
 
 @app.get("/posts")
-def get_posts():
+def get_posts()-> dict:
     cursor.execute("""SELECT * FROM posts""")
     posts = cursor.fetchall()
     return {"data":posts}
 
 @app.post("/createposts", status_code=status.HTTP_201_CREATED)
-def createposts(post:Post):
+def createposts(post:Post)-> dict:
     cursor.execute("""INSERT INTO posts (title, content, publish) VALUES (%s, %s, %s) RETURNING * """, (post.title, post.content, post.publish))
     new_post = cursor.fetchone()
     conn.commit()
     return {"date":new_post}
 
 @app.get("/posts/{id}")
-def get_post(id:int, response: Response):
+def get_post(id:int, response: Response)-> dict:
     #post = find_post(id)
     cursor.execute("""SELECT * FROM posts WHERE id = %s""", (id,))
     post = cursor.fetchone()
@@ -75,10 +76,26 @@ def delete_post(id:int):
     return {Response(status_code=status.HTTP_204_NO_CONTENT)}
 
 @app.put("/posts/{id}")
-def update_post(id:int, post:Post):    
+def update_post(id:int, post:Post)-> dict:    
     cursor.execute("""UPDATE posts SET title = %s, content = %s, publish = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.publish, id))
     updated_post = cursor.fetchone()
     conn.commit()
     if updated_post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with id {id} does not exist")
     return {"data":updated_post}
+
+
+@app.get("/get_headers")
+async def get_headers(
+    accept : str = Header(None), 
+    content_type : str = Header(None),
+    user_agent : str = Header(None), 
+    host : str = Header(None)
+    ):
+
+    request_headers = {}
+    request_headers["accept"] = accept
+    request_headers["content_type"] = content_type
+    request_headers["user_agent"] = user_agent
+    request_headers["host"] = host
+    return request_headers
