@@ -1,37 +1,20 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from sqlmodel.ext.asyncio.session import AsyncSession
+from books.schemas import Book
+from typing import List
 
-from src.auth.dependencies import AccessTokenBearer, RoleChecker
-from src.books.service import BookService
-from src.db.main import get_session
 
-from .schemas import Book, BookCreateModel, BookDetailModel, BookUpdateModel
-from src.errors import BookNotFound
 
 book_router = APIRouter()
-book_service = BookService()
-acccess_token_bearer = AccessTokenBearer()
-role_checker = Depends(RoleChecker(["admin", "user"]))
 
 
-@book_router.get("/", response_model=List[Book], dependencies=[role_checker])
-async def get_all_books(
-    session: AsyncSession = Depends(get_session),
-    _: dict = Depends(acccess_token_bearer),
-):
-    books = await book_service.get_all_books(session)
+@book_router.get("/", response_model=List[Book])
+async def get_all_books():
     return books
 
 
 @book_router.get("/user/{user_uid}", response_model=List[Book], dependencies=[role_checker])
-async def get_user_book_submissions(
-    user_uid: str,
-    session: AsyncSession = Depends(get_session),
-    _: dict = Depends(acccess_token_bearer),
-):
+async def get_user_book_submissions():
     books = await book_service.get_user_books(user_uid, session)
     return books
 
@@ -89,3 +72,31 @@ async def delete_book(
         raise BookNotFound()
     else:
         return {}
+    
+
+
+
+@app.put("/posts/{id}")
+def update_post(id:int, post:Post)-> dict:    
+    cursor.execute("""UPDATE posts SET title = %s, content = %s, publish = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.publish, id))
+    updated_post = cursor.fetchone()
+    conn.commit()
+    if updated_post == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with id {id} does not exist")
+    return {"data":updated_post}
+
+
+@app.get("/get_headers")
+async def get_headers(
+    accept : str = Header(None), 
+    content_type : str = Header(None),
+    user_agent : str = Header(None), 
+    host : str = Header(None)
+    ):
+
+    request_headers = {}
+    request_headers["accept"] = accept
+    request_headers["content_type"] = content_type
+    request_headers["user_agent"] = user_agent
+    request_headers["host"] = host
+    return request_headers

@@ -2,6 +2,7 @@ from typing import Optional, Union
 from fastapi import Body, FastAPI, Response, status, HTTPException, Header
 from pydantic import BaseModel
 from random import randrange
+from app.books.schemas import Book, BookUpdateModel
 import psycopg
 from psycopg.rows import dict_row
 import time
