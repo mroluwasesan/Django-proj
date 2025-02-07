@@ -1,5 +1,14 @@
 from fastapi import FastAPI
 from app.books.routes import book_router
+from contextlib import asynccontextmanager
+from db.main import init_db
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up")
+    await init_db()
+    yield
+    print("Shutting down")
 
 
 
@@ -20,6 +29,7 @@ version_prefix =f"/api/{version}"
 app = FastAPI(
     title="Bookly",
     description=description,
+    lifespan=lifespan,
     version=version,
     license_info={"name": "MIT License", "url": "https://opensource.org/license/mit"},
     contact={
