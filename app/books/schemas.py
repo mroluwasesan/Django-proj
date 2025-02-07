@@ -1,7 +1,6 @@
 import uuid
 from datetime import date, datetime
 from typing import List
-
 from pydantic import BaseModel
 
 from src.reviews.schemas import ReviewModel
