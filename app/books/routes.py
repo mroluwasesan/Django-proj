@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from books.models import books
-from books.schemas import Book, BookUpdateModel
+from app.books.book_data import books
+from app.books.models import Book
+from app.books.schemas import Book, BookUpdateModel
+
 from typing import List
 
 
