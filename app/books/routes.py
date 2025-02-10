@@ -3,7 +3,8 @@ from fastapi.exceptions import HTTPException
 from app.books.book_data import books
 from app.books.models import Book
 from app.books.schemas import Book, BookUpdateModel
-
+from sqlmodel.ext.asyncio.session import AsyncSession
+from app.db.main import get_session
 from typing import List
 
 
@@ -12,7 +13,7 @@ book_router = APIRouter()
 
 
 @book_router.get("/", response_model=List[Book])
-async def get_all_books():
+async def get_all_books(session: AsyncSession = Depends(get_session)):
     return books
 
 
